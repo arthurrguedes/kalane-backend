@@ -89,3 +89,33 @@ export const getUserOrders = async (req, res) => {
     res.status(500).json({ message: 'Erro ao buscar pedidos.', error: error.message });
   }
 };
+
+export const finalizarCompra = async (req, res) => {
+  const { produtoId, quantidade } = req.body;
+
+  try {
+    // Chama a função SQL que criamos no Passo 2
+    const { data: sucesso, error } = await supabase
+      .rpc('decrementar_estoque', { 
+        produto_id: produtoId, 
+        quantidade_comprada: quantidade 
+      });
+
+    if (error) throw error;
+
+    // Se a função retornou false, significa que alguém comprou antes ou acabou!
+    if (!sucesso) {
+      return res.status(400).json({ 
+        message: 'Poxa, este produto esgotou ou não tem a quantidade solicitada!' 
+      });
+    }
+
+    // --- Se chegou aqui, o estoque foi reduzido com sucesso! ---
+    // Agora você pode criar o pedido na tabela 'orders', etc.
+
+    res.status(200).json({ message: 'Compra realizada com sucesso!' });
+
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao processar compra.' });
+  }
+};
