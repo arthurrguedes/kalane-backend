@@ -91,31 +91,47 @@ export const getUserOrders = async (req, res) => {
 };
 
 export const finalizarCompra = async (req, res) => {
-  const { produtoId, quantidade } = req.body;
+  // Agora recebemos também o cupomId e o emailCliente (que podem vir vazios se não houver cupom)
+  const { produtoId, quantidade, cupomId, emailCliente } = req.body;
 
   try {
-    // Chama a função SQL que criamos no Passo 2
-    const { data: sucesso, error } = await supabase
+    const { data: sucesso, error: errorEstoque } = await supabase
       .rpc('decrementar_estoque', { 
         produto_id: produtoId, 
         quantidade_comprada: quantidade 
       });
 
-    if (error) throw error;
+    if (errorEstoque) throw errorEstoque;
 
-    // Se a função retornou false, significa que alguém comprou antes ou acabou!
     if (!sucesso) {
       return res.status(400).json({ 
         message: 'Poxa, este produto esgotou ou não tem a quantidade solicitada!' 
       });
     }
 
-    // --- Se chegou aqui, o estoque foi reduzido com sucesso! ---
-    // Agora você pode criar o pedido na tabela 'orders', etc.
+    if (cupomId && emailCliente) {
+      // Registra na tabela que este e-mail usou este cupom
+      const { error: erroUso } = await supabase
+        .from('coupon_usages')
+        .insert([{ 
+          cupom_id: cupomId, 
+          email_cliente: emailCliente 
+        }]);
+
+      if (erroUso) {
+        // Se der erro (ex: o cliente tentou burlar e mandou a mesma requisição 2x)
+        console.error("Tentativa de uso duplicado do cupom", erroUso);
+      } else {
+        // Aumenta o contador de usos do cupom no banco
+        await supabase.rpc('incrementar_uso_cupom', { 
+          p_cupom_id: cupomId 
+        });
+      }
+    }
 
     res.status(200).json({ message: 'Compra realizada com sucesso!' });
 
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao processar compra.' });
+    res.status(500).json({ message: 'Erro ao processar compra.', erro: error.message });
   }
 };

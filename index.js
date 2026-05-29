@@ -9,6 +9,8 @@ import favoritesRoutes from './src/routes/favoritesRoutes.js';
 import cartRoutes from './src/routes/cartRoutes.js';
 import authRoutes from './src/routes/authRoutes.js';
 import productRoutes from './src/routes/productRoutes.js';
+import couponRoutes from './src/routes/couponRoutes.js';
+import profileRoutes from './src/routes/profileRoutes.js';
 
 dotenv.config();
 
@@ -28,6 +30,8 @@ app.use('/produtos', productRoutes);
 app.use('/carrinho', cartRoutes);
 app.use('/favoritos', favoritesRoutes);
 app.use('/pedidos', orderRoutes);
+app.use('/cupons', couponRoutes);
+app.use('/perfil', profileRoutes);
 
 // Iniciar Servidor
 const PORT = process.env.PORT || 3000;
