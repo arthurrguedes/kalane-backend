@@ -47,7 +47,7 @@ export const login = async (req, res) => {
 
     const { data: profile } = await supabase
       .from('profiles')
-      .select('is_admin')
+      .select('nome, is_admin')
       .eq('id', data.user.id)
       .single();
 
@@ -58,7 +58,7 @@ export const login = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000 
     });
 
-    res.status(200).json({ id: data.user.id, email: data.user.email, isAdmin: profile?.is_admin || false });
+    res.status(200).json({ id: data.user.id, nome: profile?.nome || '', email: data.user.email, isAdmin: profile?.is_admin || false });
   } catch (error) {
     res.status(401).json({ message: 'Credenciais inválidas.' });
   }
@@ -85,11 +85,11 @@ export const getMe = async (req, res) => {
 
     const { data: profile } = await supabase
       .from('profiles')
-      .select('is_admin')
+      .select('nome, is_admin')
       .eq('id', user.id)
       .single();
 
-    res.status(200).json({ id: user.id, email: user.email, isAdmin: profile?.is_admin || false });
+    res.status(200).json({ id: user.id, nome: profile?.nome || '', email: user.email, isAdmin: profile?.is_admin || false });
   } catch (error) {
     res.status(500).json({ message: 'Erro ao verificar sessão' });
   }

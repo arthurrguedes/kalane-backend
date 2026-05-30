@@ -6,7 +6,7 @@ export const obterPerfil = async (req, res) => {
   try {
     const { data: perfil, error } = await supabase
       .from('profiles')
-      .select('id, nome, telefone, avatar_url, cep, endereco, aceita_marketing, id_admin')
+      .select('id, nome, telefone, avatar_url, cep, endereco, aceita_marketing, is_admin')
       .eq('id', userId)
       .single();
 
